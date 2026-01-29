@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <!--
     Capybara Nugget Quest
-    Version: 1.0.0
+    Version: 1.1.0
 
     A relaxing match-3 puzzle game featuring cute capybaras and chicken nuggets.
 
     CHANGELOG:
     ==========
+    v1.1.0 (2025-01-29)
+    - Improved hint system with much better visibility
+    - Hints now show direction arrows (↔ horizontal, ↕ vertical)
+    - Hint tiles turn bright yellow with golden border and pulsing glow
+    - Hints stay visible longer (3 seconds instead of 2)
+    - Fixed performance issue with hint detection (no longer re-renders board during search)
+
     v1.0.0 (2025-01-29)
     - Initial release
     - Match-3 puzzle gameplay with 5x5, 6x6, and 7x7 board sizes
@@ -27,7 +34,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Capybara Nugget Quest 🧡</title>
-    <meta name="version" content="1.0.0">
+    <meta name="version" content="1.1.0">
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-YNHTMMMQLH"></script>
@@ -145,7 +152,32 @@
         }
 
         .cell.hint {
-            animation: hintPulse 1s ease infinite;
+            animation: hintPulse 0.6s ease-in-out infinite;
+            z-index: 10;
+            border: 3px solid #FFD700;
+            background: linear-gradient(145deg, #FFFACD, #FFE4B5) !important;
+        }
+
+        .cell.hint-arrow {
+            position: relative;
+        }
+
+        .cell.hint-arrow::after {
+            content: var(--hint-arrow, '↔');
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: #FF6B6B;
+            text-shadow: 0 0 8px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.3);
+            animation: arrowBounce 0.5s ease-in-out infinite;
+            font-weight: bold;
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+            50% { transform: translateX(-50%) translateY(-8px) scale(1.2); }
         }
 
         @keyframes matchPop {
@@ -155,8 +187,14 @@
         }
 
         @keyframes hintPulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.5); }
-            50% { box-shadow: 0 0 25px rgba(255,215,0,0.9); }
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(255,215,0,0.7), inset 0 0 10px rgba(255,215,0,0.3);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255,215,0,1), inset 0 0 15px rgba(255,215,0,0.5);
+                transform: scale(1.08);
+            }
         }
 
         .capybara-container {
@@ -926,6 +964,13 @@
             renderBoard();
         }
 
+        // Swap without re-rendering (for testing moves)
+        function testSwap(r1, c1, r2, c2) {
+            const temp = board[r1][c1];
+            board[r1][c1] = board[r2][c2];
+            board[r2][c2] = temp;
+        }
+
         function findMatches() {
             const matches = [];
 
@@ -1058,21 +1103,21 @@
                 for (let j = 0; j < boardSize; j++) {
                     // Try swap right
                     if (j < boardSize - 1) {
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                         if (findMatches().length > 0) {
-                            swap(i, j, i, j+1);
+                            testSwap(i, j, i, j+1);
                             return true;
                         }
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                     }
                     // Try swap down
                     if (i < boardSize - 1) {
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                         if (findMatches().length > 0) {
-                            swap(i, j, i+1, j);
+                            testSwap(i, j, i+1, j);
                             return true;
                         }
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                     }
                 }
             }
@@ -1082,21 +1127,29 @@
         function findHint() {
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
+                    // Try swap right
                     if (j < boardSize - 1) {
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                         if (findMatches().length > 0) {
-                            swap(i, j, i, j+1);
-                            return [{ row: i, col: j }, { row: i, col: j+1 }];
+                            testSwap(i, j, i, j+1);
+                            return {
+                                cells: [{ row: i, col: j }, { row: i, col: j+1 }],
+                                direction: 'horizontal'
+                            };
                         }
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                     }
+                    // Try swap down
                     if (i < boardSize - 1) {
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                         if (findMatches().length > 0) {
-                            swap(i, j, i+1, j);
-                            return [{ row: i, col: j }, { row: i+1, col: j }];
+                            testSwap(i, j, i+1, j);
+                            return {
+                                cells: [{ row: i, col: j }, { row: i+1, col: j }],
+                                direction: 'vertical'
+                            };
                         }
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                     }
                 }
             }
@@ -1106,16 +1159,38 @@
         function showHint() {
             if (isAnimating) return;
 
+            // Clear any existing hints
+            document.querySelectorAll('.cell.hint, .cell.hint-arrow').forEach(c => {
+                c.classList.remove('hint', 'hint-arrow');
+            });
+
             const hint = findHint();
             if (hint) {
                 showMessage('hint');
                 const cells = document.querySelectorAll('.cell');
-                for (const h of hint) {
-                    cells[h.row * boardSize + h.col].classList.add('hint');
-                }
+
+                // Highlight both cells
+                hint.cells.forEach((h, index) => {
+                    const cell = cells[h.row * boardSize + h.col];
+                    cell.classList.add('hint');
+                    // Add arrow to first cell
+                    if (index === 0) {
+                        cell.classList.add('hint-arrow');
+                        // Update arrow direction based on swap direction
+                        if (hint.direction === 'vertical') {
+                            cell.style.setProperty('--hint-arrow', '"↕"');
+                        } else {
+                            cell.style.setProperty('--hint-arrow', '"↔"');
+                        }
+                    }
+                });
+
+                // Keep hint visible longer (3 seconds)
                 setTimeout(() => {
-                    document.querySelectorAll('.cell.hint').forEach(c => c.classList.remove('hint'));
-                }, 2000);
+                    document.querySelectorAll('.cell.hint, .cell.hint-arrow').forEach(c => {
+                        c.classList.remove('hint', 'hint-arrow');
+                    });
+                }, 3000);
             }
         }
 
