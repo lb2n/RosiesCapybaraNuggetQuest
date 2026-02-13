@@ -1,9 +1,52 @@
 <!DOCTYPE html>
+<!--
+    Rosie's Capybara Nugget Party
+    Version: 1.2.0
+
+    A relaxing match-3 puzzle game featuring cute capybaras and chicken nuggets.
+
+    CHANGELOG:
+    ==========
+    v1.2.0 (2025-01-29)
+    - Renamed from "Capybara Nugget Quest" to "Rosie's Capybara Nugget Party"
+
+    v1.1.0 (2025-01-29)
+    - Improved hint system with much better visibility
+    - Hints now show direction arrows (↔ horizontal, ↕ vertical)
+    - Hint tiles turn bright yellow with golden border and pulsing glow
+    - Hints stay visible longer (3 seconds instead of 2)
+    - Fixed performance issue with hint detection (no longer re-renders board during search)
+
+    v1.0.0 (2025-01-29)
+    - Initial release
+    - Match-3 puzzle gameplay with 5x5, 6x6, and 7x7 board sizes
+    - Custom SVG capybara characters with full body design
+    - Custom SVG chicken nuggets with crispy fried texture
+    - Pink bows, flowers, drinks, and lettuce as game pieces
+    - Pastel rainbow ombre background
+    - Mellow coral colored tiles
+    - Dancing capybara celebration on level complete
+    - Sound effects for selections, matches, combos, and level ups
+    - Hint system to help find matches
+    - Combo scoring system
+    - Mobile responsive design
+    - Google Analytics integration (G-YNHTMMMQLH)
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Capybara Nugget Quest 🧡</title>
+    <title>Rosie's Capybara Nugget Party 🧡</title>
+    <meta name="version" content="1.2.0">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-YNHTMMMQLH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-YNHTMMMQLH');
+    </script>
     <style>
         * {
             margin: 0;
@@ -83,7 +126,7 @@
         .cell {
             width: 70px;
             height: 70px;
-            background: linear-gradient(145deg, #FFFAF0, #FFF5EE);
+            background: linear-gradient(145deg, #F5B8A8, #E8A090);
             border-radius: 15px;
             display: flex;
             align-items: center;
@@ -112,7 +155,32 @@
         }
 
         .cell.hint {
-            animation: hintPulse 1s ease infinite;
+            animation: hintPulse 0.6s ease-in-out infinite;
+            z-index: 10;
+            border: 3px solid #FFD700;
+            background: linear-gradient(145deg, #FFFACD, #FFE4B5) !important;
+        }
+
+        .cell.hint-arrow {
+            position: relative;
+        }
+
+        .cell.hint-arrow::after {
+            content: var(--hint-arrow, '↔');
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: #FF6B6B;
+            text-shadow: 0 0 8px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.3);
+            animation: arrowBounce 0.5s ease-in-out infinite;
+            font-weight: bold;
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); }
+            50% { transform: translateX(-50%) translateY(-8px) scale(1.2); }
         }
 
         @keyframes matchPop {
@@ -122,15 +190,20 @@
         }
 
         @keyframes hintPulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.5); }
-            50% { box-shadow: 0 0 25px rgba(255,215,0,0.9); }
+            0%, 100% {
+                box-shadow: 0 0 15px rgba(255,215,0,0.7), inset 0 0 10px rgba(255,215,0,0.3);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(255,215,0,1), inset 0 0 15px rgba(255,215,0,0.5);
+                transform: scale(1.08);
+            }
         }
 
         .capybara-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            font-size: 80px;
             animation: float 3s ease-in-out infinite;
             z-index: 100;
         }
@@ -255,12 +328,22 @@
             margin-bottom: 20px;
         }
 
+        /* Floating capybara helper */
+        .floating-capybara {
+            width: 80px;
+            height: 80px;
+        }
+
         /* Dancing capybara celebration */
         .dancing-capybara {
-            font-size: 5em;
             display: inline-block;
             animation: capybaraDance 0.5s ease-in-out infinite;
             margin: 10px;
+        }
+
+        .dancing-capybara svg {
+            width: 80px;
+            height: 80px;
         }
 
         .dancing-capybara:nth-child(2) {
@@ -417,9 +500,18 @@
             }
 
             .capybara-container {
-                font-size: 50px;
                 bottom: 10px;
                 right: 10px;
+            }
+
+            .floating-capybara {
+                width: 50px;
+                height: 50px;
+            }
+
+            .dancing-capybara svg {
+                width: 50px;
+                height: 50px;
             }
         }
 
@@ -427,6 +519,12 @@
         .nugget-svg {
             width: 40px;
             height: 40px;
+        }
+
+        /* Custom capybara styling */
+        .capybara-svg {
+            width: 55px;
+            height: 47px;
         }
 
         .bow {
@@ -438,11 +536,15 @@
                 width: 30px;
                 height: 30px;
             }
+            .capybara-svg {
+                width: 45px;
+                height: 38px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>🧡 Capybara Nugget Quest 🧡</h1>
+    <h1>🧡 Rosie's Capybara Nugget Party 🧡</h1>
     <p class="subtitle">Help the capybaras collect yummy chicken nuggets!</p>
 
     <div class="difficulty-select">
@@ -471,7 +573,35 @@
     </div>
 
     <div class="capybara-container">
-        🦫
+        <svg class="floating-capybara" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+            <!-- Back legs -->
+            <ellipse cx="85" cy="88" rx="10" ry="8" fill="#6B5344"/>
+            <ellipse cx="70" cy="90" rx="8" ry="6" fill="#6B5344"/>
+            <!-- Body -->
+            <ellipse cx="65" cy="65" rx="40" ry="28" fill="#8B7355"/>
+            <ellipse cx="65" cy="70" rx="35" ry="22" fill="#9C8565"/>
+            <!-- Front legs -->
+            <ellipse cx="35" cy="88" rx="8" ry="8" fill="#6B5344"/>
+            <ellipse cx="50" cy="90" rx="7" ry="6" fill="#6B5344"/>
+            <!-- Head -->
+            <ellipse cx="25" cy="50" rx="22" ry="20" fill="#8B7355"/>
+            <ellipse cx="25" cy="55" rx="18" ry="15" fill="#9C8565"/>
+            <!-- Snout -->
+            <ellipse cx="12" cy="55" rx="12" ry="10" fill="#A08060"/>
+            <ellipse cx="10" cy="56" rx="9" ry="7" fill="#B8A082"/>
+            <!-- Nose -->
+            <ellipse cx="5" cy="52" rx="4" ry="3" fill="#5C4033"/>
+            <!-- Eyes -->
+            <circle cx="22" cy="42" r="4" fill="#2C1810"/>
+            <circle cx="23" cy="41" r="1.5" fill="white"/>
+            <!-- Tiny ear -->
+            <ellipse cx="35" cy="35" rx="5" ry="4" fill="#8B7355"/>
+            <ellipse cx="35" cy="35" rx="3" ry="2.5" fill="#A08060"/>
+            <!-- Blush -->
+            <ellipse cx="18" cy="52" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
+            <!-- Smile -->
+            <path d="M8,60 Q12,64 16,60" stroke="#5C4033" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
         <div class="capybara-speech" id="speech">Welcome, friend!</div>
     </div>
 
@@ -481,9 +611,63 @@
         <div class="sparkles" id="sparkles"></div>
         <h2>🎉 Level Complete! 🎉</h2>
         <div class="dance-floor">
-            <span class="dancing-capybara">🦫</span>
-            <span class="dancing-capybara">🦫</span>
-            <span class="dancing-capybara">🦫</span>
+            <span class="dancing-capybara"><svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="85" cy="88" rx="10" ry="8" fill="#6B5344"/>
+                <ellipse cx="70" cy="90" rx="8" ry="6" fill="#6B5344"/>
+                <ellipse cx="65" cy="65" rx="40" ry="28" fill="#8B7355"/>
+                <ellipse cx="65" cy="70" rx="35" ry="22" fill="#9C8565"/>
+                <ellipse cx="35" cy="88" rx="8" ry="8" fill="#6B5344"/>
+                <ellipse cx="50" cy="90" rx="7" ry="6" fill="#6B5344"/>
+                <ellipse cx="25" cy="50" rx="22" ry="20" fill="#8B7355"/>
+                <ellipse cx="25" cy="55" rx="18" ry="15" fill="#9C8565"/>
+                <ellipse cx="12" cy="55" rx="12" ry="10" fill="#A08060"/>
+                <ellipse cx="10" cy="56" rx="9" ry="7" fill="#B8A082"/>
+                <ellipse cx="5" cy="52" rx="4" ry="3" fill="#5C4033"/>
+                <circle cx="22" cy="42" r="4" fill="#2C1810"/>
+                <circle cx="23" cy="41" r="1.5" fill="white"/>
+                <ellipse cx="35" cy="35" rx="5" ry="4" fill="#8B7355"/>
+                <ellipse cx="35" cy="35" rx="3" ry="2.5" fill="#A08060"/>
+                <ellipse cx="18" cy="52" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
+                <path d="M8,60 Q12,64 16,60" stroke="#5C4033" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg></span>
+            <span class="dancing-capybara"><svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="85" cy="88" rx="10" ry="8" fill="#6B5344"/>
+                <ellipse cx="70" cy="90" rx="8" ry="6" fill="#6B5344"/>
+                <ellipse cx="65" cy="65" rx="40" ry="28" fill="#8B7355"/>
+                <ellipse cx="65" cy="70" rx="35" ry="22" fill="#9C8565"/>
+                <ellipse cx="35" cy="88" rx="8" ry="8" fill="#6B5344"/>
+                <ellipse cx="50" cy="90" rx="7" ry="6" fill="#6B5344"/>
+                <ellipse cx="25" cy="50" rx="22" ry="20" fill="#8B7355"/>
+                <ellipse cx="25" cy="55" rx="18" ry="15" fill="#9C8565"/>
+                <ellipse cx="12" cy="55" rx="12" ry="10" fill="#A08060"/>
+                <ellipse cx="10" cy="56" rx="9" ry="7" fill="#B8A082"/>
+                <ellipse cx="5" cy="52" rx="4" ry="3" fill="#5C4033"/>
+                <circle cx="22" cy="42" r="4" fill="#2C1810"/>
+                <circle cx="23" cy="41" r="1.5" fill="white"/>
+                <ellipse cx="35" cy="35" rx="5" ry="4" fill="#8B7355"/>
+                <ellipse cx="35" cy="35" rx="3" ry="2.5" fill="#A08060"/>
+                <ellipse cx="18" cy="52" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
+                <path d="M8,60 Q12,64 16,60" stroke="#5C4033" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg></span>
+            <span class="dancing-capybara"><svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="85" cy="88" rx="10" ry="8" fill="#6B5344"/>
+                <ellipse cx="70" cy="90" rx="8" ry="6" fill="#6B5344"/>
+                <ellipse cx="65" cy="65" rx="40" ry="28" fill="#8B7355"/>
+                <ellipse cx="65" cy="70" rx="35" ry="22" fill="#9C8565"/>
+                <ellipse cx="35" cy="88" rx="8" ry="8" fill="#6B5344"/>
+                <ellipse cx="50" cy="90" rx="7" ry="6" fill="#6B5344"/>
+                <ellipse cx="25" cy="50" rx="22" ry="20" fill="#8B7355"/>
+                <ellipse cx="25" cy="55" rx="18" ry="15" fill="#9C8565"/>
+                <ellipse cx="12" cy="55" rx="12" ry="10" fill="#A08060"/>
+                <ellipse cx="10" cy="56" rx="9" ry="7" fill="#B8A082"/>
+                <ellipse cx="5" cy="52" rx="4" ry="3" fill="#5C4033"/>
+                <circle cx="22" cy="42" r="4" fill="#2C1810"/>
+                <circle cx="23" cy="41" r="1.5" fill="white"/>
+                <ellipse cx="35" cy="35" rx="5" ry="4" fill="#8B7355"/>
+                <ellipse cx="35" cy="35" rx="3" ry="2.5" fill="#A08060"/>
+                <ellipse cx="18" cy="52" rx="4" ry="3" fill="#FFB6C1" opacity="0.5"/>
+                <path d="M8,60 Q12,64 16,60" stroke="#5C4033" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg></span>
         </div>
         <div class="stars" id="stars">⭐⭐⭐</div>
         <p id="level-message">Amazing job!</p>
@@ -506,13 +690,38 @@
         let isAnimating = false;
 
         // Game pieces - capybaras, nuggets, and bows!
-        const pieces = ['🦫', '🟤', '🥤', '🥬', '🎀', '🌸'];
+        const pieces = ['🐹', '🟤', '🥤', '🥬', '🎀', '🌸'];
 
-        // Custom nugget rendering
-        const pieceDisplay = {
-            '🟤': '<span class="nugget">🟡</span>', // chicken nugget
-            '🎀': '<span class="bow">🎀</span>'     // pink bow
-        };
+        // Cute capybara SVG - full body with round face, tiny ears, sweet expression
+        const capybaraSVG = `<svg class="capybara-svg" viewBox="0 0 100 85" xmlns="http://www.w3.org/2000/svg">
+            <!-- Back legs -->
+            <ellipse cx="75" cy="78" rx="9" ry="7" fill="#6B5344"/>
+            <ellipse cx="62" cy="80" rx="7" ry="5" fill="#6B5344"/>
+            <!-- Body -->
+            <ellipse cx="55" cy="55" rx="35" ry="24" fill="#8B7355"/>
+            <ellipse cx="55" cy="60" rx="30" ry="18" fill="#9C8565"/>
+            <!-- Front legs -->
+            <ellipse cx="28" cy="78" rx="7" ry="7" fill="#6B5344"/>
+            <ellipse cx="40" cy="80" rx="6" ry="5" fill="#6B5344"/>
+            <!-- Head -->
+            <ellipse cx="22" cy="42" rx="19" ry="17" fill="#8B7355"/>
+            <ellipse cx="22" cy="46" rx="15" ry="13" fill="#9C8565"/>
+            <!-- Snout -->
+            <ellipse cx="10" cy="46" rx="10" ry="8" fill="#A08060"/>
+            <ellipse cx="8" cy="47" rx="7" ry="6" fill="#B8A082"/>
+            <!-- Nose -->
+            <ellipse cx="4" cy="44" rx="3" ry="2.5" fill="#5C4033"/>
+            <!-- Eye -->
+            <circle cx="20" cy="36" r="3.5" fill="#2C1810"/>
+            <circle cx="21" cy="35" r="1.2" fill="white"/>
+            <!-- Tiny ear -->
+            <ellipse cx="32" cy="28" rx="4" ry="3.5" fill="#8B7355"/>
+            <ellipse cx="32" cy="28" rx="2.5" ry="2" fill="#A08060"/>
+            <!-- Blush -->
+            <ellipse cx="16" cy="44" rx="3.5" ry="2.5" fill="#FFB6C1" opacity="0.5"/>
+            <!-- Smile -->
+            <path d="M6,51 Q10,54 14,51" stroke="#5C4033" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </svg>`;
 
         // Capybara messages
         const messages = {
@@ -695,9 +904,11 @@
                     const cell = document.createElement('div');
                     cell.className = 'cell';
 
-                    // Check if it's a nugget piece
+                    // Check for custom SVG pieces
                     if (board[i][j] === '🟤') {
                         cell.innerHTML = nuggetSVG;
+                    } else if (board[i][j] === '🐹') {
+                        cell.innerHTML = capybaraSVG;
                     } else {
                         cell.textContent = board[i][j];
                     }
@@ -754,6 +965,13 @@
             board[r1][c1] = board[r2][c2];
             board[r2][c2] = temp;
             renderBoard();
+        }
+
+        // Swap without re-rendering (for testing moves)
+        function testSwap(r1, c1, r2, c2) {
+            const temp = board[r1][c1];
+            board[r1][c1] = board[r2][c2];
+            board[r2][c2] = temp;
         }
 
         function findMatches() {
@@ -888,21 +1106,21 @@
                 for (let j = 0; j < boardSize; j++) {
                     // Try swap right
                     if (j < boardSize - 1) {
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                         if (findMatches().length > 0) {
-                            swap(i, j, i, j+1);
+                            testSwap(i, j, i, j+1);
                             return true;
                         }
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                     }
                     // Try swap down
                     if (i < boardSize - 1) {
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                         if (findMatches().length > 0) {
-                            swap(i, j, i+1, j);
+                            testSwap(i, j, i+1, j);
                             return true;
                         }
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                     }
                 }
             }
@@ -912,21 +1130,29 @@
         function findHint() {
             for (let i = 0; i < boardSize; i++) {
                 for (let j = 0; j < boardSize; j++) {
+                    // Try swap right
                     if (j < boardSize - 1) {
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                         if (findMatches().length > 0) {
-                            swap(i, j, i, j+1);
-                            return [{ row: i, col: j }, { row: i, col: j+1 }];
+                            testSwap(i, j, i, j+1);
+                            return {
+                                cells: [{ row: i, col: j }, { row: i, col: j+1 }],
+                                direction: 'horizontal'
+                            };
                         }
-                        swap(i, j, i, j+1);
+                        testSwap(i, j, i, j+1);
                     }
+                    // Try swap down
                     if (i < boardSize - 1) {
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                         if (findMatches().length > 0) {
-                            swap(i, j, i+1, j);
-                            return [{ row: i, col: j }, { row: i+1, col: j }];
+                            testSwap(i, j, i+1, j);
+                            return {
+                                cells: [{ row: i, col: j }, { row: i+1, col: j }],
+                                direction: 'vertical'
+                            };
                         }
-                        swap(i, j, i+1, j);
+                        testSwap(i, j, i+1, j);
                     }
                 }
             }
@@ -936,16 +1162,38 @@
         function showHint() {
             if (isAnimating) return;
 
+            // Clear any existing hints
+            document.querySelectorAll('.cell.hint, .cell.hint-arrow').forEach(c => {
+                c.classList.remove('hint', 'hint-arrow');
+            });
+
             const hint = findHint();
             if (hint) {
                 showMessage('hint');
                 const cells = document.querySelectorAll('.cell');
-                for (const h of hint) {
-                    cells[h.row * boardSize + h.col].classList.add('hint');
-                }
+
+                // Highlight both cells
+                hint.cells.forEach((h, index) => {
+                    const cell = cells[h.row * boardSize + h.col];
+                    cell.classList.add('hint');
+                    // Add arrow to first cell
+                    if (index === 0) {
+                        cell.classList.add('hint-arrow');
+                        // Update arrow direction based on swap direction
+                        if (hint.direction === 'vertical') {
+                            cell.style.setProperty('--hint-arrow', '"↕"');
+                        } else {
+                            cell.style.setProperty('--hint-arrow', '"↔"');
+                        }
+                    }
+                });
+
+                // Keep hint visible longer (3 seconds)
                 setTimeout(() => {
-                    document.querySelectorAll('.cell.hint').forEach(c => c.classList.remove('hint'));
-                }, 2000);
+                    document.querySelectorAll('.cell.hint, .cell.hint-arrow').forEach(c => {
+                        c.classList.remove('hint', 'hint-arrow');
+                    });
+                }, 3000);
             }
         }
 
